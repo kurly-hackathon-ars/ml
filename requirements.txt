@@ -5,6 +5,7 @@ pandas==1.4.3
 matplotlib==3.5.3
 scipy==1.9.0
 scikit-learn==1.1.2
+transformers[torch]==4.21.1
 
 # Development Only
 pytest
@@ -12,3 +13,5 @@ pylint
 pyright
 black
 isort
+ipython
+data-science-types

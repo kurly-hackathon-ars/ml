@@ -5,6 +5,7 @@ from threading import RLock
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, cast
 
 import pandas as pd
+from transformers.pipelines import pipeline
 
 from . import models
 
@@ -106,3 +107,15 @@ def setup_sample_items():
             # activity_type=models.ActivityType.from_rating(rating["rating"]),
             activity_type=rating["rating"],
         )  # type: ignore
+
+
+def get_vectors(sentences: List[str]) -> List[Any]:
+    extractor = pipeline(
+        "feature-extraction",
+        model="kykim/bert-kor-base",
+        tokenizer="kykim/bert-kor-base",
+    )
+
+    vectors = extractor(sentences)
+
+    return [vector[0][0] for vector in vectors]  # [CLS] token
