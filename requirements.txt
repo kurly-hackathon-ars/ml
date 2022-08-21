@@ -6,6 +6,7 @@ matplotlib==3.5.3
 scipy==1.9.0
 scikit-learn==1.1.2
 transformers[torch]==4.21.1
+pymilvus==2.1.1
 
 # Development Only
 pytest
