@@ -5,12 +5,19 @@ from threading import RLock
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, cast
 
 import pandas as pd
+from pymilvus import connections
 from transformers.pipelines import pipeline
 
 from . import models
 
 _db: DefaultDict[str, Dict[int, Any]] = defaultdict(dict)
 _lock = RLock()
+
+_milvus_conn = connections.connect(
+    alias="default",
+    host=os.environ.get("MILVUS_HOST", "localhost"),
+    port=os.environ.get("MILVUS_PORT", "19530"),
+)
 
 
 def _concurrent_lock(fn: Callable):
