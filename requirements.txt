@@ -9,6 +9,7 @@ transformers[torch]==4.21.1
 pymilvus==2.1.1
 typer==0.6.1
 kafka-python==2.0.2
+mysql-connector-python==8.0.30
 
 # Development Only
 pytest

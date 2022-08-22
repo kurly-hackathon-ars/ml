@@ -164,3 +164,10 @@ def insert_entities(items: List[models.Item]):
     item_ids = [item.id for item in items]
     item_name_vectors = get_vectors([item.name for item in items])
     MilvusHelper.insert(item_ids, item_name_vectors)
+
+
+def get_training_data():
+    cursor = config.mysql_connection.cursor()
+    cursor.execute("select * from products")
+    for each in cursor:
+        print(each)

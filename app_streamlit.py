@@ -19,7 +19,13 @@ def main():
 
     st.title("Kurly Recommend System Demo")
     selected_option = st.sidebar.selectbox(
-        "Select View", ["View Data", "Recommend By Vector", "Recommend By Activity"]
+        "Select View",
+        [
+            "View Data",
+            "Generate Training Data",
+            "Recommend By Vector",
+            "Recommend By Activity",
+        ],
     )
 
     st.sidebar.subheader("Upload data")
@@ -60,8 +66,14 @@ def main():
         recommend_by_vector()
     elif selected_option == "Recommend By Activity":
         recommend_by_activity()
+    elif selected_option == "Generate Training Data":
+        generate_training_data()
     else:
         ...
+
+
+def generate_training_data():
+    ...
 
 
 def view_data():
