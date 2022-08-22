@@ -143,5 +143,10 @@ def insert_milvus_entities(fp: str = "./data/items.csv"):
     )
 
 
+@typer_app.command()
+def drop_milvus_collection():
+    MilvusHelper.get_collection().drop()
+
+
 if __name__ == "__main__":
     typer_app()
