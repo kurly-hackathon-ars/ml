@@ -13,3 +13,8 @@ MILVUS_DEFAULT_ALIAS = "default"
 milvus_conn = pymilvus.connections.connect(
     MILVUS_DEFAULT_ALIAS, host=MILVUS_HOST, port=MILVUS_PORT
 )
+
+
+LAZY_LOAD_EXTRACTOR_PIPELINE = (
+    os.environ.get("LAZY_LOAD_EXTRACTOR_PIPELINE", "true").lower() == "true"
+)
