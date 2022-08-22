@@ -13,13 +13,6 @@ from . import models
 _db: DefaultDict[str, Dict[int, Any]] = defaultdict(dict)
 _lock = RLock()
 
-_milvus_conn = connections.connect(
-    alias="default",
-    host=os.environ.get("MILVUS_HOST", "localhost"),
-    port=os.environ.get("MILVUS_PORT", "19530"),
-)
-
-
 def _concurrent_lock(fn: Callable):
     @wraps(fn)
     def _wrapper(*args, **kwargs):
