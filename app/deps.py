@@ -1,5 +1,4 @@
 import logging
-import os
 from collections import defaultdict
 from functools import wraps
 from threading import RLock
@@ -7,12 +6,10 @@ from typing import Any, Callable, DefaultDict, Dict, List, Optional, cast
 
 import config
 import pandas as pd
-from transformers.pipelines import pipeline
-from transformers.pipelines.base import Pipeline
 
 from app.milvus import MilvusHelper
 
-from . import models
+from . import models, vector
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +17,6 @@ _GET_VECTORS_BATCH_SIZE = 100
 
 _db: DefaultDict[str, Dict[int, Any]] = defaultdict(dict)
 _lock = RLock()
-
-_extractor: Optional[Pipeline] = None
 
 
 def _concurrent_lock(fn: Callable):
@@ -131,7 +126,7 @@ def get_vectors(sentences: List[str]) -> List[Any]:
     for i in range(n_batch):
         logger.debug("[%d/%d] Extracting vector...", i + 1, n_batch)
         vectors.extend(
-            _get_extractor()(
+            vector.get_extractor()(
                 sentences[
                     i * _GET_VECTORS_BATCH_SIZE : i * _GET_VECTORS_BATCH_SIZE
                     + _GET_VECTORS_BATCH_SIZE
@@ -143,21 +138,8 @@ def get_vectors(sentences: List[str]) -> List[Any]:
     return [vector[0][0] for vector in vectors]  # [CLS] token
 
 
-def _get_extractor() -> Pipeline:
-    global _extractor
-    if _extractor is not None:
-        return _extractor
-
-    _extractor = pipeline(
-        "feature-extraction",
-        model="kykim/bert-kor-base",
-        tokenizer="kykim/bert-kor-base",
-    )
-    return _extractor
-
-
 if not config.LAZY_LOAD_EXTRACTOR_PIPELINE:
-    _get_extractor()
+    vector.get_extractor()
 
 
 def insert_entities(items: List[models.Item]):
