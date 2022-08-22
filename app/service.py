@@ -9,6 +9,8 @@ from matplotlib import pyplot as plt
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
+from app.milvus import MilvusHelper
+
 from . import deps, models
 
 logger = logging.getLogger(__name__)
@@ -17,6 +19,18 @@ _MODEL_PATH = "./model2.pkl"
 _dataset: Optional[Any] = None
 _df: Optional[Any] = None
 _knn = None
+
+
+def recommend_by_vector(query: str) -> List[models.MilvusSearchResult]:
+    search_results = MilvusHelper.search(deps.get_vectors([query]))
+
+    results = []
+    for hits in search_results:
+        for hit in hits:
+            results.append(
+                models.MilvusSearchResult(distance=hit.distance, item_id=hit.id)
+            )
+    return results
 
 
 def recommend_by_activity(item_id: int):

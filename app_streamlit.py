@@ -7,24 +7,35 @@ from matplotlib import pyplot as plt
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
+from app import service
+
 TEST_DATA_DIR = "./data"
 
 
 def main():
     st.set_page_config(layout="wide")
 
+    st.title("Kurly Recommend System Demo")
     selected_option = st.sidebar.selectbox(
         "Select Option", ["Recommend By Vector", "Recommend By Activity"]
     )
 
     if selected_option == "Recommend By Vector":
         recommend_by_vector()
+    elif selected_option == "Recommend By Activity":
+        recommend_by_activity()
     else:
         ...
 
 
+def recommend_by_activity():
+    query = st.text_input("Query")
+    st.dataframe(
+        pd.DataFrame([each.dict() for each in service.recommend_by_vector(query)])
+    )
+
+
 def recommend_by_vector():
-    st.title("Kurly Recommend System Demo")
 
     # Load dataset from Movie...
     items = pd.read_csv(os.path.join(TEST_DATA_DIR, "movies.csv"))
