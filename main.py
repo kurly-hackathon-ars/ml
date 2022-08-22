@@ -1,9 +1,17 @@
+import csv
+import logging
+
+import typer
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
+import config
 from app import deps, models, service
+from app.milvus import MilvusHelper
 from config import *
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Kurly Festa API")
 app.add_middleware(
@@ -100,3 +108,40 @@ def setup_sample_items_for_testing():
     deps.setup_sample_items()
     service._train_model()
     return Response(status_code=200)
+
+
+########################################################################################################################
+# CLI
+########################################################################################################################
+typer_app = typer.Typer()
+
+
+@typer_app.command()
+def insert_milvus_entities(fp: str = "./data/items.csv"):
+    with open(fp, encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        item_ids = []
+        titles = []
+        for each in reader:
+            item_ids.append(int(each["itemId"]))
+            titles.append(each["title"])
+
+        vectors = deps.get_vectors(titles)
+
+        MilvusHelper.get_collection().insert([item_ids, vectors])
+
+    collection = MilvusHelper.get_collection()
+    collection.load()
+    logger.info(
+        collection.search(
+            deps.get_vectors(["식물"]),
+            "item_name",
+            {"metric_type": "L2", "params": {"nprobe": 10}},
+            limit=10,
+            output_fields=["item_id"],
+        )
+    )
+
+
+if __name__ == "__main__":
+    typer_app()

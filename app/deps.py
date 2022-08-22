@@ -1,3 +1,4 @@
+import logging
 import os
 from collections import defaultdict
 from functools import wraps
@@ -5,13 +6,23 @@ from threading import RLock
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, cast
 
 import pandas as pd
-from pymilvus import connections
 from transformers.pipelines import pipeline
 
 from . import models
 
+logger = logging.getLogger(__name__)
+
+_GET_VECTORS_BATCH_SIZE = 100
+
 _db: DefaultDict[str, Dict[int, Any]] = defaultdict(dict)
 _lock = RLock()
+
+_extractor = pipeline(
+    "feature-extraction",
+    model="kykim/bert-kor-base",
+    tokenizer="kykim/bert-kor-base",
+)
+
 
 def _concurrent_lock(fn: Callable):
     @wraps(fn)
@@ -110,12 +121,20 @@ def setup_sample_items():
 
 
 def get_vectors(sentences: List[str]) -> List[Any]:
-    extractor = pipeline(
-        "feature-extraction",
-        model="kykim/bert-kor-base",
-        tokenizer="kykim/bert-kor-base",
-    )
+    logger.info("Received %d sentences.", len(sentences))
+    n_batch = (len(sentences) // _GET_VECTORS_BATCH_SIZE) + 1
 
-    vectors = extractor(sentences)
+    vectors = []
+    for i in range(n_batch):
+        logger.debug("[%d/%d] Extracting vector...", i + 1, n_batch)
+        vectors.extend(
+            _extractor(
+                sentences[
+                    i * _GET_VECTORS_BATCH_SIZE : i * _GET_VECTORS_BATCH_SIZE
+                    + _GET_VECTORS_BATCH_SIZE
+                ]
+            )
+        )
 
+    assert len(sentences) == len(vectors), f"{len(sentences)} != {len(vectors)}"
     return [vector[0][0] for vector in vectors]  # [CLS] token
