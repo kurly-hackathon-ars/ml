@@ -10,6 +10,8 @@ import pandas as pd
 from transformers.pipelines import pipeline
 from transformers.pipelines.base import Pipeline
 
+from app.milvus import MilvusHelper
+
 from . import models
 
 logger = logging.getLogger(__name__)
@@ -54,7 +56,7 @@ def get_activities() -> List[models.Activity]:
 
 
 @_concurrent_lock
-def upsert_item(item_id: int, name: str):
+def upsert_item(item_id: int, name: str) -> models.Item:
     items = _db["items"]
     items_idx = _db["items_idx"]
 
@@ -69,6 +71,7 @@ def upsert_item(item_id: int, name: str):
 
     items[item_id] = item
     items_idx[index] = item
+    return item
 
 
 @_concurrent_lock
@@ -97,18 +100,20 @@ def delete_item(item_id: int):
 
 
 @_concurrent_lock
-def setup_sample_items():
+def setup_sample_items(
+    items_fp: str = "./data/items.csv", ratings_fp: str = "./data/ratings.csv"
+):
     if "items" in _db:
         _db.pop("items")
 
     if "activities" in _db:
         _db.pop("activities")
 
-    items = pd.read_csv(os.path.join("./data", "movies.csv"))
+    items = pd.read_csv(items_fp)
     for _, item in items.iterrows():
         upsert_item(item["itemId"], item["title"])  # type: ignore
 
-    ratings = pd.read_csv(os.path.join("./data", "ratings.csv"))
+    ratings = pd.read_csv(ratings_fp)
     for _, rating in ratings.iterrows():
         add_activity(
             user_id=rating["userId"],
@@ -139,15 +144,23 @@ def get_vectors(sentences: List[str]) -> List[Any]:
 
 
 def _get_extractor() -> Pipeline:
+    global _extractor
     if _extractor is not None:
         return _extractor
 
-    return pipeline(
+    _extractor = pipeline(
         "feature-extraction",
         model="kykim/bert-kor-base",
         tokenizer="kykim/bert-kor-base",
     )
+    return _extractor
 
 
 if not config.LAZY_LOAD_EXTRACTOR_PIPELINE:
-    _extractor = _get_extractor()
+    _get_extractor()
+
+
+def insert_entities(items: List[models.Item]):
+    item_ids = [item.id for item in items]
+    item_name_vectors = get_vectors([item.name for item in items])
+    MilvusHelper.insert(item_ids, item_name_vectors)

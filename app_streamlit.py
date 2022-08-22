@@ -1,5 +1,6 @@
 import os
 import pickle
+import tempfile
 
 import pandas as pd
 import streamlit as st
@@ -7,7 +8,8 @@ from matplotlib import pyplot as plt
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
-from app import service
+from app import deps, service
+from app.milvus import MilvusHelper
 
 TEST_DATA_DIR = "./data"
 
@@ -17,10 +19,44 @@ def main():
 
     st.title("Kurly Recommend System Demo")
     selected_option = st.sidebar.selectbox(
-        "Select Option", ["Recommend By Vector", "Recommend By Activity"]
+        "Select View", ["View Data", "Recommend By Vector", "Recommend By Activity"]
     )
 
-    if selected_option == "Recommend By Vector":
+    st.sidebar.subheader("Upload data")
+    uploaded_items = st.sidebar.file_uploader("Upload items", type=["csv"])
+    uploaded_ratings = st.sidebar.file_uploader("Upload ratings", type=["csv"])
+
+    if (
+        st.sidebar.button("Upload", disabled=not uploaded_items or not uploaded_ratings)
+        and uploaded_items
+        and uploaded_ratings
+    ):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            items_fp = os.path.join(tmp_dir, "items.csv")
+            ratings_fp = os.path.join(tmp_dir, "ratings.csv")
+
+            with open(items_fp, mode="wb") as f:
+                f.write(uploaded_items.read())
+
+            with open(ratings_fp, mode="wb") as f:
+                f.write(uploaded_ratings.read())
+
+            deps.setup_sample_items(items_fp, ratings_fp)
+
+    if st.sidebar.button("Upload sample dataset"):
+        deps.setup_sample_items()
+
+    st.sidebar.subheader("Commands")
+
+    if st.sidebar.button("Drop items"):
+        MilvusHelper.drop()
+
+    if st.sidebar.button("Build items"):
+        deps.insert_entities(deps.get_items())
+
+    if selected_option == "View Data":
+        view_data()
+    elif selected_option == "Recommend By Vector":
         recommend_by_vector()
     elif selected_option == "Recommend By Activity":
         recommend_by_activity()
@@ -28,14 +64,24 @@ def main():
         ...
 
 
-def recommend_by_activity():
+def view_data():
+    st.dataframe(pd.DataFrame([item.dict() for item in deps.get_items()]))
+    st.dataframe(pd.DataFrame([item.dict() for item in deps.get_activities()]))
+
+
+def recommend_by_vector():
+    st.subheader("Test")
     query = st.text_input("Query")
+
+    if not query.strip():
+        st.stop()
+
     st.dataframe(
         pd.DataFrame([each.dict() for each in service.recommend_by_vector(query)])
     )
 
 
-def recommend_by_vector():
+def recommend_by_activity():
 
     # Load dataset from Movie...
     items = pd.read_csv(os.path.join(TEST_DATA_DIR, "movies.csv"))

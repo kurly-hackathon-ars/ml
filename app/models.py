@@ -61,4 +61,5 @@ class RecommendResponse(pydantic.BaseModel):
 
 class MilvusSearchResult(pydantic.BaseModel):
     item_id: int
+    item_name: str
     distance: float

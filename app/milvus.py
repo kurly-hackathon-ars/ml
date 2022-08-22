@@ -1,3 +1,4 @@
+from threading import Lock
 from typing import List, Optional
 
 import config
@@ -10,13 +11,15 @@ class MilvusHelper(object):
     SEARCH_LIMIT = 20
 
     _loaded_collection: Optional[Collection] = None
+    _load_lock: Lock = Lock()
 
     @classmethod
     def get_collection(cls) -> Collection:
         if cls._loaded_collection is None:
-            cls._loaded_collection = cls._get_collection()
+            with cls._load_lock:
+                cls._loaded_collection = cls._get_collection()
+                cls._loaded_collection.load()
 
-        cls._loaded_collection.load()
         return cls._loaded_collection
 
     @classmethod
@@ -43,3 +46,13 @@ class MilvusHelper(object):
             limit=cls.SEARCH_LIMIT,
             output_fields=["item_id"],
         )  # type: ignore
+
+    @classmethod
+    def insert(cls, item_ids: List[int], item_names):
+        cls.get_collection().insert([item_ids, item_names])
+        cls._loaded_collection = None
+
+    @classmethod
+    def drop(cls):
+        cls.get_collection().drop()
+        cls._loaded_collection = None

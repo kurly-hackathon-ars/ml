@@ -27,8 +27,13 @@ def recommend_by_vector(query: str) -> List[models.MilvusSearchResult]:
     results = []
     for hits in search_results:
         for hit in hits:
+            item = deps.get_item_by_id(hit.id)
             results.append(
-                models.MilvusSearchResult(distance=hit.distance, item_id=hit.id)
+                models.MilvusSearchResult(
+                    distance=hit.distance,
+                    item_id=hit.id,
+                    item_name=item.name if item else "<unknown>",
+                )
             )
     return results
 
@@ -62,6 +67,11 @@ def recommend_by_activity(item_id: int):
         if deps.get_item_by_index(each[0])
     ]
     return rec_movie_indices
+
+
+def insert_item(item_id: int, item_name: str):
+    item = deps.upsert_item(item_id, item_name)
+    deps.insert_entities([item])
 
 
 def _get_recommendation_model():
