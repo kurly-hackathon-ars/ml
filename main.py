@@ -72,7 +72,7 @@ def get_all_acitivies():
 
 @app.put("/items", tags=["Management"])
 def put_item(request: models.PutItemRequest):
-    service.insert_item(request.id, request.name)
+    service.insert_item(request.id, request.name, request.category)
     return Response(status_code=200)
 
 

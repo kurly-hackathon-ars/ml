@@ -25,6 +25,7 @@ class Item(pydantic.BaseModel):
     id: int
     index: int
     name: str
+    category: str
 
 
 class Activity(pydantic.BaseModel):

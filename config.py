@@ -25,7 +25,7 @@ MYSQL_HOST = os.environ.get(
 )
 MYSQL_DATABASE = "kurly"
 MYSQL_USERNAME = "root"
-MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "kurlyars2022!")
+MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "ars!!kurly#")
 
 mysql_connection = mysql.connector.connect(
     user=MYSQL_USERNAME,

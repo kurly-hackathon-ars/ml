@@ -1,6 +1,9 @@
+import csv
 import os
 import pickle
+import random
 import tempfile
+from io import BytesIO
 
 import pandas as pd
 import streamlit as st
@@ -8,7 +11,7 @@ from matplotlib import pyplot as plt
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
-from app import deps, service
+from app import deps, service, vector
 from app.milvus import MilvusHelper
 
 TEST_DATA_DIR = "./data"
@@ -49,7 +52,7 @@ def main():
 
             deps.setup_sample_items(items_fp, ratings_fp)
 
-    if st.sidebar.button("Upload sample dataset"):
+    if st.sidebar.button("Load sample dataset"):
         deps.setup_sample_items()
 
     st.sidebar.subheader("Commands")
@@ -80,8 +83,65 @@ def view_data():
     st.dataframe(pd.DataFrame([item.dict() for item in deps.get_items()]))
     st.dataframe(pd.DataFrame([item.dict() for item in deps.get_activities()]))
 
+    items = deps.get_items()
+    categories = set()
+    for item in items:
+        categories.add(item.category)
+
+    with st.expander("Category Token Analysis", expanded=False):
+        extractor = vector.get_extractor()
+        for category in categories:
+            assert extractor.tokenizer
+
+            ids = extractor.tokenizer([category])["input_ids"][0]  # type: ignore
+            st.text(extractor.tokenizer.convert_ids_to_tokens(ids)[1:-1])
+
+    if st.button("Generate Training Data"):
+        rows = []
+        # Add positive samples
+        for item in items:
+            category = random.choice(item.category.split("/"))
+            text = " ".join([item.name, "[SEP]", category])
+            label = 1
+            data = {"label": label, "text": text}
+            rows.append(data)
+
+        # Add negative samples
+        for item in items:
+            _categories = categories.copy()
+            _categories.remove(item.category)
+
+            category = random.choice(list(_categories))
+            text = " ".join([item.name, "[SEP]", category])
+            label = 0
+            data = {"label": label, "text": text}
+            rows.append(data)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fp = os.path.join(tmp_dir, "training_data.csv")
+            with open(fp, mode="w", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, ["text", "label"])
+                writer.writeheader()
+                writer.writerows(rows)
+
+            with open(fp, encoding="utf-8") as f:
+                st.download_button(
+                    "Download Generated Training Data", f, "trainig_data.csv"
+                )
+
 
 def recommend_by_vector():
+    st.subheader("Train")
+    uploaded_training = st.file_uploader("Training Data", type=["csv"])
+
+    if uploaded_training and st.button("Start Train"):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fp = os.path.join(tmp_dir, "data.csv")
+            with open(fp, mode="wb") as f:
+                f.write(uploaded_training.read())
+
+            vector.train_model(fp)
+
     st.subheader("Test")
     query = st.text_input("Query")
 

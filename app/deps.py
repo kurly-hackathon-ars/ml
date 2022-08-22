@@ -51,7 +51,7 @@ def get_activities() -> List[models.Activity]:
 
 
 @_concurrent_lock
-def upsert_item(item_id: int, name: str) -> models.Item:
+def upsert_item(item_id: int, name: str, category: str) -> models.Item:
     items = _db["items"]
     items_idx = _db["items_idx"]
 
@@ -62,7 +62,7 @@ def upsert_item(item_id: int, name: str) -> models.Item:
         index = item.index
     else:
         index = len(items)
-        item = models.Item(index=index, id=item_id, name=name)
+        item = models.Item(index=index, id=item_id, name=name, category=category)
 
     items[item_id] = item
     items_idx[index] = item
@@ -104,18 +104,16 @@ def setup_sample_items(
     if "activities" in _db:
         _db.pop("activities")
 
-    items = pd.read_csv(items_fp)
-    for _, item in items.iterrows():
-        upsert_item(item["itemId"], item["title"])  # type: ignore
+    cursor = config.mysql_connection.cursor()
+    cursor.execute("select * from products")
+    idx = 0
+    for each in cursor:
+        item_id, name, category = each[0], each[2], each[5]
+        upsert_item(item_id, name, category)
+        idx += 1
 
-    ratings = pd.read_csv(ratings_fp)
-    for _, rating in ratings.iterrows():
-        add_activity(
-            user_id=rating["userId"],
-            item_id=rating["itemId"],
-            # activity_type=models.ActivityType.from_rating(rating["rating"]),
-            activity_type=rating["rating"],
-        )  # type: ignore
+        if idx == 1000:
+            break
 
 
 def get_vectors(sentences: List[str]) -> List[Any]:

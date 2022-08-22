@@ -69,8 +69,8 @@ def recommend_by_activity(item_id: int):
     return rec_movie_indices
 
 
-def insert_item(item_id: int, item_name: str):
-    item = deps.upsert_item(item_id, item_name)
+def insert_item(item_id: int, item_name: str, item_category: str):
+    item = deps.upsert_item(item_id, item_name, item_category)
     deps.insert_entities([item])
 
 
