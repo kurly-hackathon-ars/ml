@@ -36,6 +36,12 @@ class Activity(pydantic.BaseModel):
     activity_type: float
 
 
+class ItemFilterDictionary(pydantic.BaseModel):
+    """For Vector search, exclude some keywords like brands, common things in items, ..."""
+
+    keyword: str
+
+
 class PutItemRequest(Item, pydantic.BaseModel):
     ...
 

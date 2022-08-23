@@ -2,7 +2,8 @@ import logging
 from collections import defaultdict
 from functools import wraps
 from threading import RLock
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, cast
+from typing import (Any, Callable, DefaultDict, Dict, List, Optional, Union,
+                    cast)
 
 import config
 import pandas as pd
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 _GET_VECTORS_BATCH_SIZE = 100
 
-_db: DefaultDict[str, Dict[int, Any]] = defaultdict(dict)
+_db: DefaultDict[str, Dict[Union[int, str], Any]] = defaultdict(dict)
 _lock = RLock()
 
 
@@ -30,6 +31,13 @@ def _concurrent_lock(fn: Callable):
 
 def get_items() -> List[models.Item]:
     return [cast(models.Item, item) for _, item in _db["items"].items()]
+
+
+def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
+    return [
+        cast(models.ItemFilterDictionary, item)
+        for _, item in _db["item_filter_dictionaries"].items()
+    ]
 
 
 def get_item_by_id(item_id: int) -> Optional[models.Item]:
@@ -85,6 +93,14 @@ def add_activity(
         activity_type=activity_type,
     )
     activities[activity_id] = activity
+
+
+@_concurrent_lock
+def upsert_item_filter_dictionary(s: str) -> models.ItemFilterDictionary:
+    dicts = _db["item_filter_dictionaries"]
+
+    dicts[s] = models.ItemFilterDictionary(keyword=s)
+    return dicts[s]
 
 
 def delete_item(item_id: int):

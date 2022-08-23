@@ -11,7 +11,7 @@ from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
 import config
-from app import deps, service, vector
+from app import deps, models, service, vector
 from app.milvus import MilvusHelper
 
 TEST_DATA_DIR = "./data"
@@ -54,6 +54,27 @@ def main():
 
             deps.setup_sample_items_from_csv(items_fp, ratings_fp)
 
+    uploaded_filter_dictionary = st.sidebar.file_uploader(
+        "Upload filter keyword dictionary", type=["csv"]
+    )
+
+    if (
+        st.sidebar.button(
+            "Upload filter keyword dictionary", disabled=not uploaded_filter_dictionary
+        )
+        and uploaded_filter_dictionary
+    ):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fp = os.path.join(tmp_dir, "file.csv")
+            with open(fp, mode="wb") as f:
+                f.write(uploaded_filter_dictionary.read())
+
+            df = pd.read_csv(fp)
+            for _, row in df.iterrows():
+                deps.upsert_item_filter_dictionary(row["keyword"])
+
+            st.info(f"Uploaded {df.shape[0]} filter keywords")
+
     mysql_limit = st.sidebar.number_input("Count", value=200, step=1)
     if st.sidebar.button("Load sample dataset from MySQL"):
         deps.setup_sample_items_from_mysql("kurly_products", int(mysql_limit or 200))
@@ -64,7 +85,7 @@ def main():
         MilvusHelper.drop()
 
     if st.sidebar.button("Build items"):
-        deps.insert_entities(deps.get_items())
+        service.build_items()
 
     if selected_option == "View Data":
         view_data()
@@ -136,6 +157,22 @@ def view_data():
 def recommend_by_vector():
     st.subheader("Train")
     uploaded_training = st.file_uploader("Training Data", type=["csv"])
+
+    st.subheader("Filter Dict")
+    filter_keyword = st.text_input("Add filter keyword to dictionary").strip()
+    if filter_keyword:
+        deps.upsert_item_filter_dictionary(filter_keyword)
+
+    dicts = deps.get_item_filter_dictionaries()
+    dicts_df = pd.DataFrame([each.dict() for each in dicts])
+    st.dataframe(dicts_df)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        fp = os.path.join(tmp_dir, "data.csv")
+        dicts_df.to_csv(fp, index=False)
+        with open(fp) as f:
+            st.download_button(
+                "Download ItemFilterDictionary", f, "filter-dictionary.csv"
+            )
 
     if uploaded_training and st.button("Start Train"):
         with tempfile.TemporaryDirectory() as tmp_dir:

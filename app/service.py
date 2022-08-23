@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+import re
 from collections import OrderedDict
 from typing import Any, List, Optional
 
@@ -19,6 +20,8 @@ _MODEL_PATH = "./model2.pkl"
 _dataset: Optional[Any] = None
 _df: Optional[Any] = None
 _knn = None
+
+_COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE = r".,!?\-()[]{}"
 
 
 def recommend_by_vector(query: str) -> List[models.MilvusSearchResult]:
@@ -72,6 +75,34 @@ def recommend_by_activity(item_id: int):
 def insert_item(item_id: int, item_name: str, item_category: str):
     item = deps.upsert_item(item_id, item_name, item_category)
     deps.insert_entities([item])
+
+
+def build_items():
+    filter_keywords = set(
+        (
+            each.keyword.strip()
+            for each in deps.get_item_filter_dictionaries()
+            if each.keyword.strip()
+        )
+    )
+    items = [item.copy(deep=True) for item in deps.get_items()]
+    logger.info("Filter item names by ItemFilterDictionary...")
+    for item in items:
+        words = re.findall(
+            rf"\w+|[{_COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE}\s]", item.name, re.UNICODE
+        )
+
+        new_words = []
+        for word in words:
+            if word.strip() in filter_keywords:
+                logger.debug("Drop keyword %s from %s", word, item.name)
+                continue
+
+            new_words.append(word)
+
+        item.name = "".join(new_words)
+
+    deps.insert_entities(items)
 
 
 def _get_recommendation_model():
