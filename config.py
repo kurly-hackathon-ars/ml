@@ -5,6 +5,7 @@ import mysql.connector
 import pymilvus
 
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("parso").setLevel(logging.INFO)
 
 MILVUS_HOST = os.environ.get("MILVUS_HOST", "localhost")
 MILVUS_PORT = os.environ.get("MILVUS_PORT", "19530")
