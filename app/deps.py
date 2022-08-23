@@ -73,7 +73,14 @@ def get_items_by_ids(ids: List[int]) -> List[models.Item]:
     cursor.close()
     conn.close()
 
-    return [items[id] for id in ids]
+    ret = []
+    for id in ids:
+        if id in items:
+            ret.append(items[id])
+        else:
+            ret.append(None)
+
+    return ret
 
 
 def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
