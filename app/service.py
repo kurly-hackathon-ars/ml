@@ -3,7 +3,7 @@ import os
 import pickle
 import re
 from collections import OrderedDict
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Set
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -21,7 +21,7 @@ _dataset: Optional[Any] = None
 _df: Optional[Any] = None
 _knn = None
 
-_COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE = r".,!?\-()[]{}"
+_COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE = r".,!?\-()[]{} "
 
 
 def recommend_by_vector(query: str) -> List[models.MilvusSearchResult]:
@@ -98,11 +98,30 @@ def build_items():
                 logger.debug("Drop keyword %s from %s", word, item.name)
                 continue
 
+            if word in _COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE:
+                continue
+
             new_words.append(word)
 
-        item.name = "".join(new_words)
+        item.name = " ".join(new_words)
+        for each in filter_keywords:
+            if each in item.name:
+                logger.debug("Drop keyword %s from %s", each, item.name)
+                item.name = item.name.replace(each, "")
 
     deps.insert_entities(items)
+
+
+def generate_item_filter_keywords_from_items() -> Set[str]:
+    items = deps.get_items()
+
+    keywords = set()
+    for item in items:
+        for each in re.findall(r"\[\w+\]", item.name, re.UNICODE):
+            logger.debug("Found %s from %s", each, item.name)
+            keywords.add(each.strip("[").strip("]"))
+
+    return keywords
 
 
 def _get_recommendation_model():

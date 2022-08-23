@@ -153,15 +153,32 @@ def view_data():
                     "Download Generated Training Data", f, "trainig_data.csv"
                 )
 
+    if st.button("Generate Item Filter Keywords"):
+        keywords = service.generate_item_filter_keywords_from_items()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fp = os.path.join(tmp_dir, "download.csv")
+            with open(fp, mode="w", encoding="utf8") as f:
+                writer = csv.DictWriter(f, ["keyword"])
+                writer.writeheader()
+                writer.writerows([{"keyword": k} for k in keywords])
+
+            with open(fp) as f:
+                st.download_button(
+                    "Download Generated Filter Keywords",
+                    f,
+                    "filter-dictionary-generated.csv",
+                )
+
 
 def recommend_by_vector():
     st.subheader("Train")
     uploaded_training = st.file_uploader("Training Data", type=["csv"])
 
-    st.subheader("Filter Dict")
+    st.subheader("Filter Keyword Dictionary")
     filter_keyword = st.text_input("Add filter keyword to dictionary").strip()
     if filter_keyword:
         deps.upsert_item_filter_dictionary(filter_keyword)
+        st.info(f"{filter_keyword} is added to dictionary.")
 
     dicts = deps.get_item_filter_dictionaries()
     dicts_df = pd.DataFrame([each.dict() for each in dicts])
