@@ -105,7 +105,7 @@ def delete_item(item_id: int):
 
 @app.post("/items/setup_samples", tags=["Management"])
 def setup_sample_items_for_testing():
-    deps.setup_sample_items()
+    deps.setup_sample_items_from_csv()
     service._train_model()
     return Response(status_code=200)
 

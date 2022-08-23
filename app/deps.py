@@ -95,8 +95,29 @@ def delete_item(item_id: int):
 
 
 @_concurrent_lock
-def setup_sample_items(
-    items_fp: str = "./data/items.csv", ratings_fp: str = "./data/ratings.csv"
+def setup_sample_items_from_csv(
+    items_fp: str = "./data/items.csv",
+    ratings_fp: str = "./data/ratings.csv",
+):
+    if "items" in _db:
+        _db.pop("items")
+
+    if "activities" in _db:
+        _db.pop("activities")
+
+    items = pd.read_csv(items_fp)
+    for _, item in items.iterrows():
+        upsert_item(item["itemId"], item["title"], item["category"])
+
+    ratings = pd.read_csv(ratings_fp)
+    for _, rating in ratings:
+        add_activity(rating["userId"], rating["itemId"], activity_type=rating["rating"])
+
+
+@_concurrent_lock
+def setup_sample_items_from_mysql(
+    sql_table: str = "kurly_products",  # products(beauty from Olive), kurly_products
+    limit: Optional[int] = None,
 ):
     if "items" in _db:
         _db.pop("items")
@@ -105,15 +126,18 @@ def setup_sample_items(
         _db.pop("activities")
 
     cursor = config.mysql_connection.cursor()
-    cursor.execute("select * from products")
-    idx = 0
+    sql_query = f"select * from {sql_table}"
+
+    if limit is not None and limit > 0:
+        sql_query += f" limit {limit}"
+
+    cursor.execute(sql_query)
     for each in cursor:
         item_id, name, category = each[0], each[2], each[5]
         upsert_item(item_id, name, category)
-        idx += 1
-
-        if idx == 1000:
-            break
+        logger.debug(
+            "Inserted item<id=%d,name=%s,category=%s>", item_id, name, category
+        )
 
 
 def get_vectors(sentences: List[str]) -> List[Any]:

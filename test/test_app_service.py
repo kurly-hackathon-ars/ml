@@ -11,11 +11,11 @@ def test__get_item():
 
 
 def test_recommend_by_activity():
-    deps.setup_sample_items()
+    deps.setup_sample_items_from_csv()
     assert service.recommend_by_activity(0)
 
 
 def test__train_model():
-    deps.setup_sample_items()  # TODO: Remove
+    deps.setup_sample_items_from_csv()  # TODO: Remove
     service._train_model()
     assert False

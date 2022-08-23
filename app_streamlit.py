@@ -3,7 +3,6 @@ import os
 import pickle
 import random
 import tempfile
-from io import BytesIO
 
 import pandas as pd
 import streamlit as st
@@ -11,6 +10,7 @@ from matplotlib import pyplot as plt
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
+import config
 from app import deps, service, vector
 from app.milvus import MilvusHelper
 
@@ -30,7 +30,9 @@ def main():
             "Recommend By Activity",
         ],
     )
-
+    ############################################################################
+    # Upload Data
+    ############################################################################
     st.sidebar.subheader("Upload data")
     uploaded_items = st.sidebar.file_uploader("Upload items", type=["csv"])
     uploaded_ratings = st.sidebar.file_uploader("Upload ratings", type=["csv"])
@@ -50,10 +52,11 @@ def main():
             with open(ratings_fp, mode="wb") as f:
                 f.write(uploaded_ratings.read())
 
-            deps.setup_sample_items(items_fp, ratings_fp)
+            deps.setup_sample_items_from_csv(items_fp, ratings_fp)
 
-    if st.sidebar.button("Load sample dataset"):
-        deps.setup_sample_items()
+    mysql_limit = st.sidebar.number_input("Count", value=200, step=1)
+    if st.sidebar.button("Load sample dataset from MySQL"):
+        deps.setup_sample_items_from_mysql("kurly_products", int(mysql_limit or 200))
 
     st.sidebar.subheader("Commands")
 
