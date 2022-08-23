@@ -2,13 +2,14 @@ from threading import Lock
 from typing import List, Optional
 
 import config
+import pymilvus
 from pymilvus import (Collection, CollectionSchema, DataType, FieldSchema,
                       SearchResult)
 
 
 class MilvusHelper(object):
     VECTOR_FIELD_NAME = "item_name"
-    SEARCH_LIMIT = 20
+    SEARCH_LIMIT = 50
 
     _loaded_collection: Optional[Collection] = None
     _load_lock: Lock = Lock()
@@ -45,6 +46,7 @@ class MilvusHelper(object):
             {"metric_type": "L2"},
             limit=cls.SEARCH_LIMIT,
             output_fields=["item_id"],
+            consistency_level="Strong",
         )  # type: ignore
 
     @classmethod

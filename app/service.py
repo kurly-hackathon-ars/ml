@@ -21,7 +21,7 @@ _dataset: Optional[Any] = None
 _df: Optional[Any] = None
 _knn = None
 
-_COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE = r".,!?\-()[]{} "
+_COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE = r".,!?\-()[]{}~X "
 
 
 def recommend_by_vector(query: str) -> List[models.MilvusSearchResult]:
@@ -99,6 +99,11 @@ def build_items():
                 continue
 
             if word in _COMMON_PUNCTUATIONS_IN_PRODUCT_TITLE:
+                logger.debug("Drop punctuation %s from %s", word, item.name)
+                continue
+
+            if re.match(r"\d", word):
+                logger.debug("Drop number %s from %s", word, item.name)
                 continue
 
             new_words.append(word)
@@ -108,6 +113,8 @@ def build_items():
             if each in item.name:
                 logger.debug("Drop keyword %s from %s", each, item.name)
                 item.name = item.name.replace(each, "")
+
+        logger.info("Processed item name ==> %s", item.name)
 
     deps.insert_entities(items)
 
