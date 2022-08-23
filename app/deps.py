@@ -30,7 +30,14 @@ def _concurrent_lock(fn: Callable):
 
 
 def get_items() -> List[models.Item]:
-    return [cast(models.Item, item) for _, item in _db["items"].items()]
+    cursor = config.ml_mysql_connection.cursor()
+    items = []
+    cursor.execute("select * from items")
+    for each in cursor:
+        item = models.Item(id=each[2], index=each[0], name=each[1], category=each[3])
+        items.append(item)
+
+    return items
 
 
 def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
@@ -41,17 +48,33 @@ def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
 
 
 def get_item_by_id(item_id: int) -> Optional[models.Item]:
-    if item_id not in _db["items"]:
+    cursor = config.ml_mysql_connection.cursor()
+    query = f"""
+        SELECT * FROM items WHERE item_id={item_id}
+    """
+    cursor.execute(query)
+    for each in cursor:
+        item = models.Item(id=each[2], index=each[0], name=each[1], category=each[3])
+        break
+    else:
         return None
 
-    return _db["items"][item_id]
+    return item
 
 
 def get_item_by_index(idx: int) -> Optional[models.Item]:
-    if idx not in _db["items_idx"]:
+    cursor = config.ml_mysql_connection.cursor()
+    query = f"""
+        SELECT * FROM items WHERE id={idx}
+    """
+    cursor.execute(query)
+    for each in cursor:
+        item = models.Item(id=each[2], index=each[0], name=each[1], category=each[3])
+        break
+    else:
         return None
 
-    return _db["items_idx"][idx]
+    return item
 
 
 def get_activities() -> List[models.Activity]:
@@ -60,21 +83,15 @@ def get_activities() -> List[models.Activity]:
 
 @_concurrent_lock
 def upsert_item(item_id: int, name: str, category: str) -> models.Item:
-    items = _db["items"]
-    items_idx = _db["items_idx"]
-
-    # Update
-    if item_id in items:
-        item = cast(models.Item, items[item_id])
-        item.name = name
-        index = item.index
-    else:
-        index = len(items)
-        item = models.Item(index=index, id=item_id, name=name, category=category)
-
-    items[item_id] = item
-    items_idx[index] = item
-    return item
+    cursor = config.ml_mysql_connection.cursor()
+    query = f"""
+        REPLACE INTO items (item_id, name, category)
+        VALUES ('{item_id}', '{name}', '{category}')
+    """
+    cursor.execute(query)
+    cursor.fetchall()
+    config.ml_mysql_connection.commit()
+    return get_item_by_id(item_id)  # type: ignore
 
 
 @_concurrent_lock

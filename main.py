@@ -147,6 +147,15 @@ def insert_milvus_entities(fp: str = "./data/items.csv"):
 
 
 @typer_app.command()
+def create_ml_mysql_tables():
+    cursor = config.ml_mysql_connection.cursor()
+    cursor.execute("DROP TABLE IF EXISTS items")
+    cursor.execute(
+        "CREATE TABLE items (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), item_id INT UNIQUE, category VARCHAR(255))"
+    )
+
+
+@typer_app.command()
 def drop_milvus_collection():
     MilvusHelper.get_collection().drop()
 

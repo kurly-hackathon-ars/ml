@@ -28,9 +28,21 @@ MYSQL_DATABASE = "kurly"
 MYSQL_USERNAME = "root"
 MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "ars!!kurly#")
 
+ML_MYSQL_HOST = os.environ.get("ML_MYSQL_HOST", "localhost")
+ML_MYSQL_DATABASE = "kurly"
+ML_MYSQL_USERNAME = "kurly"
+ML_MYSQL_PASSWORD = os.environ.get("ML_MYSQL_PASSWORD", "kurly")
+
 mysql_connection = mysql.connector.connect(
     user=MYSQL_USERNAME,
     host=MYSQL_HOST,
     password=MYSQL_PASSWORD,
     database=MYSQL_DATABASE,
+)
+
+ml_mysql_connection = mysql.connector.connect(
+    user=ML_MYSQL_USERNAME,
+    host=ML_MYSQL_HOST,
+    password=ML_MYSQL_PASSWORD,
+    database=ML_MYSQL_DATABASE,
 )
