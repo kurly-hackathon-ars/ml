@@ -34,7 +34,15 @@ def get_items() -> List[models.Item]:
     items = []
     cursor.execute("select * from items")
     for each in cursor:
-        item = models.Item(id=each[2], index=each[0], name=each[1], category=each[3])
+        item = models.Item(
+            id=each[2],
+            index=each[0],
+            name=each[1],
+            category=each[3],
+            img_url=each[4],
+            origin_price=each[5],
+            sale_price=each[6],
+        )
         items.append(item)
 
     return items
@@ -54,7 +62,15 @@ def get_item_by_id(item_id: int) -> Optional[models.Item]:
     """
     cursor.execute(query)
     for each in cursor:
-        item = models.Item(id=each[2], index=each[0], name=each[1], category=each[3])
+        item = models.Item(
+            id=each[2],
+            index=each[0],
+            name=each[1],
+            category=each[3],
+            img_url=each[4],
+            origin_price=each[5],
+            sale_price=each[6],
+        )
         break
     else:
         return None
@@ -69,7 +85,15 @@ def get_item_by_index(idx: int) -> Optional[models.Item]:
     """
     cursor.execute(query)
     for each in cursor:
-        item = models.Item(id=each[2], index=each[0], name=each[1], category=each[3])
+        item = models.Item(
+            id=each[2],
+            index=each[0],
+            name=each[1],
+            category=each[3],
+            img_url=each[4],
+            origin_price=each[5],
+            sale_price=each[6],
+        )
         break
     else:
         return None
@@ -82,13 +106,21 @@ def get_activities() -> List[models.Activity]:
 
 
 @_concurrent_lock
-def upsert_item(item_id: int, name: str, category: str) -> models.Item:
+def upsert_item(
+    item_id: int,
+    name: str,
+    category: str,
+    img_url: str,
+    origin_price: Optional[int],
+    sale_price: Optional[int],
+) -> models.Item:
     cursor = config.ml_mysql_connection.cursor()
     name = name.replace("'", "")
     category = category.replace("'", "")
+    img_url = img_url.replace("'", "")
     query = f"""
-        REPLACE INTO items (item_id, name, category)
-        VALUES ('{item_id}', '{name}', '{category}')
+        REPLACE INTO items (item_id, name, category, img_url, origin_price, sale_price)
+        VALUES ('{item_id}', '{name}', '{category}', '{img_url}', '{origin_price}', '{sale_price}')
     """
     cursor.execute(query)
     cursor.fetchall()
@@ -168,8 +200,15 @@ def setup_sample_items_from_mysql(
 
     cursor.execute(sql_query)
     for each in cursor:
-        item_id, name, category = each[0], each[2], each[5]
-        upsert_item(item_id, name, category)
+        item_id, name, category, img_url, origin_price, sale_price = (
+            each[0],
+            each[2],
+            each[5],
+            each[1],
+            each[3],
+            each[4],
+        )
+        upsert_item(item_id, name, category, img_url, origin_price, sale_price)
         logger.debug(
             "Inserted item<id=%d,name=%s,category=%s>", item_id, name, category
         )

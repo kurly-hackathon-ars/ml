@@ -35,10 +35,14 @@ def health():
 # 사용자의 상품 검색시, 벡터기반의 검색결과를 추가로 노출하여 유사 상품 구매를 제안
 @app.get("/recommend_by_keyword/{keyword}", response_model=List[models.RecommendedItem])
 def recommend_by_keyword(keyword: str):
-
     return [
         models.RecommendedItem(
-            no=each.item.id, name=each.item.name, category=each.item.category
+            no=each.item.id,
+            name=each.item.name,
+            category=each.item.category,
+            img_url=each.item.img_url,
+            origin_price=each.item.origin_price,
+            sale_price=each.item.sale_price,
         )
         for each in service.recommend_by_vector(keyword)[:20]
     ]
@@ -151,7 +155,7 @@ def create_ml_mysql_tables():
     cursor = config.ml_mysql_connection.cursor()
     cursor.execute("DROP TABLE IF EXISTS items")
     cursor.execute(
-        "CREATE TABLE items (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), item_id INT UNIQUE, category VARCHAR(255))"
+        "CREATE TABLE items (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), item_id INT UNIQUE, category VARCHAR(255), img_url VARCHAR(2083), origin_price INT, sale_price INT )"
     )
 
 

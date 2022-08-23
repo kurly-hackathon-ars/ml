@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 import pydantic
 
@@ -26,6 +26,9 @@ class Item(pydantic.BaseModel):
     index: int
     name: str
     category: str
+    img_url: str
+    origin_price: Optional[int] = None
+    sale_price: Optional[int] = None
 
 
 class Activity(pydantic.BaseModel):
@@ -58,10 +61,10 @@ class RecommendByActivityRequest(pydantic.BaseModel):
 
 class RecommendedItem(pydantic.BaseModel):
     no: int
-    img_url: str = ""
+    img_url: str
     name: str
-    origin_price: int = -1
-    sale_price: int = -1
+    origin_price: Optional[int] = None
+    sale_price: Optional[int] = None
     category: str
 
 
