@@ -189,6 +189,19 @@ def add_activity(
     activities[activity_id] = activity
 
 
+def upsert_activity(item_id: int, activity_type: str, offset: int):
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        f"""
+            INSERT INTO activities (item_id, offset, activity_type)
+            VALUES ('{item_id}', '{offset}', '{activity_type}')
+    """
+    )
+    cursor.close()
+    conn.close()
+
+
 @_concurrent_lock
 def upsert_item_filter_dictionary(s: str) -> models.ItemFilterDictionary:
     dicts = _db["item_filter_dictionaries"]

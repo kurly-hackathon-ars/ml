@@ -4,7 +4,7 @@ import os
 import mysql.connector
 import pymilvus
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logging.getLogger("parso").setLevel(logging.INFO)
 
 MILVUS_HOST = os.environ.get("MILVUS_HOST", "localhost")
@@ -50,5 +50,5 @@ ml_mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
     database=ML_MYSQL_DATABASE,
 )
 
-KAFKA_HOST = os.environ.get("KAFKA_HOST", "localhost")
+# KAFKA_HOST = os.environ.get("KAFKA_HOST", "localhost")
 KAFKA_PORT = os.environ.get("KAFKA_PORT", "9092")

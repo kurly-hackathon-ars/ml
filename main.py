@@ -163,11 +163,15 @@ def insert_milvus_entities(fp: str = "./data/items.csv"):
 
 @typer_app.command()
 def create_ml_mysql_tables():
-    conn = config.ml_mysql_pool
+    conn = config.ml_mysql_pool.get_connection()
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS items")
     cursor.execute(
         "CREATE TABLE items (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), item_id INT UNIQUE, category VARCHAR(255), img_url VARCHAR(2083), origin_price INT, sale_price INT )"
+    )
+    cursor.execute("DROP TABLE IF EXISTS activities")
+    cursor.execute(
+        "CREATE TABLE activities (id INT AUTO_INCREMENT PRIMARY KEY, item_id INT, offset INT UNIQUE, activity_type VARCHAR(255))"
     )
     cursor.close()
     conn.close()
