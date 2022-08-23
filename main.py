@@ -67,6 +67,15 @@ def get_item_by_id(item_id: int):
     return deps.get_item_by_id(item_id)
 
 
+@app.get("/items/batch/{item_ids}", tags=["Management"])
+def get_items_by_ids(item_ids: str):
+    items = []
+    for item_id in item_ids.split(","):
+        item = deps.get_item_by_id(int(item_id))
+        items.append(item)
+    return items
+
+
 @app.get("/activities", tags=["Management"])
 def get_all_acitivies():
     return deps.get_activities()
