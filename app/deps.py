@@ -30,7 +30,8 @@ def _concurrent_lock(fn: Callable):
 
 
 def get_items() -> List[models.Item]:
-    cursor = config.ml_mysql_connection.cursor()
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
     items = []
     cursor.execute("select * from items")
     for each in cursor:
@@ -45,6 +46,8 @@ def get_items() -> List[models.Item]:
         )
         items.append(item)
 
+    cursor.close()
+    conn.close()
     return items
 
 
@@ -56,7 +59,8 @@ def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
 
 
 def get_item_by_id(item_id: int) -> Optional[models.Item]:
-    cursor = config.ml_mysql_connection.cursor()
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
     query = f"""
         SELECT * FROM items WHERE item_id={item_id}
     """
@@ -75,11 +79,14 @@ def get_item_by_id(item_id: int) -> Optional[models.Item]:
     else:
         return None
 
+    cursor.close()
+    conn.close()
     return item
 
 
 def get_item_by_index(idx: int) -> Optional[models.Item]:
-    cursor = config.ml_mysql_connection.cursor()
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
     query = f"""
         SELECT * FROM items WHERE id={idx}
     """
@@ -97,7 +104,8 @@ def get_item_by_index(idx: int) -> Optional[models.Item]:
         break
     else:
         return None
-
+    cursor.close()
+    conn.close()
     return item
 
 
@@ -114,7 +122,8 @@ def upsert_item(
     origin_price: Optional[int],
     sale_price: Optional[int],
 ) -> models.Item:
-    cursor = config.ml_mysql_connection.cursor()
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
     name = name.replace("'", "")
     category = category.replace("'", "")
     img_url = img_url.replace("'", "")
@@ -124,7 +133,9 @@ def upsert_item(
     """
     cursor.execute(query)
     cursor.fetchall()
-    config.ml_mysql_connection.commit()
+    conn.commit()
+    cursor.close()
+    conn.close()
     return get_item_by_id(item_id)  # type: ignore
 
 
