@@ -33,8 +33,8 @@ def health():
 
 
 # 사용자의 상품 검색시, 벡터기반의 검색결과를 추가로 노출하여 유사 상품 구매를 제안
-@app.get("/recommend_by_keyword/{keyword}", response_model=List[models.RecommendedItem])
-def recommend_by_keyword(keyword: str):
+@app.post("/recommend_by_keyword", response_model=List[models.RecommendedItem])
+def recommend_by_keyword(request: models.RecommendByKeyword):
     return [
         models.RecommendedItem(
             no=each.item.id,
@@ -44,13 +44,13 @@ def recommend_by_keyword(keyword: str):
             origin_price=each.item.origin_price,
             sale_price=each.item.sale_price,
         )
-        for each in service.recommend_by_vector(keyword)[:20]
+        for each in service.recommend_by_vector(request.keyword)[:20]
     ]
 
 
 # 사용자의 행동 데이터 (좋아요, 장바구니 담기, 최근 상품 등)들을 통해 생성, 가공된 상품 데이터를 통해 실시간 추천
-@app.get("/recommend_by_activity/{item_id}")
-def recommend_by_activity(item_id: int):
+@app.get("/recommend_by_activity")
+def recommend_by_activity():
     return {
         "search": [deps.get_items_by_ids([5000069, 5000070])],
         "view": [deps.get_items_by_ids([5000069, 5000070])],
