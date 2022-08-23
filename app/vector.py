@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 
 _extractor: Optional[Pipeline] = None
 
-# _MODEL_NAME = "kykim/bert-kor-base"
+_MODEL_NAME = "kykim/bert-kor-base"
 _TOKENIZER_NAME = "kykim/bert-kor-base"
 _TRAIN_OUTPUT_DIR = "./train_output"
 _MODEL_FILE_PATH = "./models/trained_model"
-_MODEL_NAME = _MODEL_FILE_PATH
+# _MODEL_NAME = _MODEL_FILE_PATH
 # _TOKENIZER_NAME = _MODEL_FILE_PATH
 
 
