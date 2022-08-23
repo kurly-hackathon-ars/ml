@@ -211,7 +211,7 @@ def recommend_by_vector():
 
 
 def recommend_by_activity():
-
+    st.stop()
     # Load dataset from Movie...
     items = pd.read_csv(os.path.join(TEST_DATA_DIR, "movies.csv"))
     st.dataframe(items)

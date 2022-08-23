@@ -94,7 +94,7 @@ def post_activity(request: models.PostActivityRequest):
         item_id=request.item_id,
         activity_type=request.activity_type.value,
     )
-    service._train_model()
+    # service._train_model()
     return Response(status_code=200)
 
 
