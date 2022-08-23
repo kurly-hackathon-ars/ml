@@ -84,6 +84,8 @@ def get_activities() -> List[models.Activity]:
 @_concurrent_lock
 def upsert_item(item_id: int, name: str, category: str) -> models.Item:
     cursor = config.ml_mysql_connection.cursor()
+    name = name.replace("'", "")
+    category = category.replace("'", "")
     query = f"""
         REPLACE INTO items (item_id, name, category)
         VALUES ('{item_id}', '{name}', '{category}')
