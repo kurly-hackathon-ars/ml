@@ -115,6 +115,11 @@ typer_app = typer.Typer()
 
 
 @typer_app.command()
+def setup_sample_items_from_mysql(limit: int = 200):
+    deps.setup_sample_items_from_mysql("kurly_products", limit)
+
+
+@typer_app.command()
 def insert_milvus_entities(fp: str = "./data/items.csv"):
     with open(fp, encoding="utf-8") as f:
         reader = csv.DictReader(f)
