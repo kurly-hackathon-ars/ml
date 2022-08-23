@@ -194,12 +194,27 @@ def upsert_activity(item_id: int, activity_type: str, offset: int):
     cursor = conn.cursor()
     cursor.execute(
         f"""
-            INSERT INTO activities (item_id, offset, activity_type)
+            REPLACE INTO activities (item_id, offset, activity_type)
             VALUES ('{item_id}', '{offset}', '{activity_type}')
     """
     )
+    cursor.fetchall()
     cursor.close()
     conn.close()
+
+
+def get_activities2():
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        f"""
+        SELECT * FROM activities
+    """
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
 
 
 @_concurrent_lock

@@ -1,5 +1,6 @@
 import csv
 import logging
+from collections import Counter, defaultdict
 from typing import List
 
 import typer
@@ -48,29 +49,34 @@ def recommend_by_keyword(request: models.RecommendByKeyword):
     ]
 
 
+_TYPE_TO_RET_MAP = {
+    "PURCHASE": "buy",
+    "CART": "cart",
+    "FAVORITE": "like",
+    "CLICK": "view",
+    "SEARCH": "search",
+}
+
 # 사용자의 행동 데이터 (좋아요, 장바구니 담기, 최근 상품 등)들을 통해 생성, 가공된 상품 데이터를 통해 실시간 추천
 @app.get("/recommend_by_activity")
 def recommend_by_activity():
-    return {
-        "search": [deps.get_items_by_ids([5000069, 5000070])],
-        "view": [deps.get_items_by_ids([5000069, 5000070])],
-        "buy": [deps.get_items_by_ids([5000069, 5000070])],
-        "like": [deps.get_items_by_ids([5000069, 5000070])],
-        "cart": [deps.get_items_by_ids([5000069, 5000070])],
-    }
+    # PURCHASE, CART, FAVORITE, CLICK, SEARCH
+    type_to_items = defaultdict(list)
+    activities = deps.get_activities2()
+    logger.info("Found %d activities...", len(activities))
+    for row in activities:
+        item_id, activity_type = row[1], row[3]
+        type_to_items[activity_type].append(item_id)
 
+    type_to_items_ret = defaultdict(list)
+    for k, v in type_to_items.items():
+        if k not in _TYPE_TO_RET_MAP:
+            continue
 
-########################################################################################################################
-# Managements
-########################################################################################################################
-@app.get("/items", tags=["Management"])
-def get_all_items():
-    return deps.get_items()
-
-
-@app.get("/items/{item_id}", tags=["Management"])
-def get_item_by_id(item_id: int):
-    return deps.get_item_by_id(item_id)
+        for k2, v2 in list(
+            sorted(list(Counter(v).items()), key=lambda x: x[1], reverse=True)
+        )[:10]:
+            type_to_items_ret[_TYPE_TO_RET_MAP[k]].append(deps.get_item_by_id(k2))
 
 
 @app.get("/items/batch/{item_ids}", tags=["Management"])

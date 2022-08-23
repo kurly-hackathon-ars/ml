@@ -22,7 +22,7 @@ def main():
             each.strip().split("=")[-1] for each in msg.value.decode("utf-8").split(",")
         ]
         item_id, action_type = data[2], data[3]
-        deps.upsert_activity(item_id, action_type, msg.offset)
+        deps.upsert_activity(int(item_id), action_type, msg.offset)
 
     logger.info("Stopping activity consumer...")
 
