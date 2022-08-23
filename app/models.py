@@ -33,7 +33,7 @@ class Item(pydantic.BaseModel):
 
 class Activity(pydantic.BaseModel):
     id: int
-    user_id: int
+    user_id: str
     item_id: int
     # activity_type: ActivityType
     activity_type: float
@@ -50,7 +50,7 @@ class PutItemRequest(Item, pydantic.BaseModel):
 
 
 class PostActivityRequest(pydantic.BaseModel):
-    user_id: int
+    user_id: str
     item_id: int
     activity_type: ActivityType
 

@@ -141,7 +141,7 @@ def upsert_item(
 
 @_concurrent_lock
 def add_activity(
-    user_id: int,
+    user_id: str,
     item_id: int,
     # activity_type: models.ActivityType,
     activity_type: float,
