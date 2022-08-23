@@ -1,5 +1,6 @@
 import csv
 import logging
+from typing import List
 
 import typer
 from fastapi import FastAPI
@@ -32,24 +33,21 @@ def health():
 
 
 # 사용자의 상품 검색시, 벡터기반의 검색결과를 추가로 노출하여 유사 상품 구매를 제안
-@app.get("/recommend_by_keyword/{keyword}")
+@app.get("/recommend_by_keyword/{keyword}", response_model=List[models.RecommendedItem])
 def recommend_by_keyword(keyword: str):
-    return [item for item in deps.get_items()[:5]]
+
+    return [
+        models.RecommendedItem(
+            no=each.item.id, name=each.item.name, category=each.item.category
+        )
+        for each in service.recommend_by_vector(keyword)[:20]
+    ]
 
 
 # 사용자의 행동 데이터 (좋아요, 장바구니 담기, 최근 상품 등)들을 통해 생성, 가공된 상품 데이터를 통해 실시간 추천
 @app.get("/recommend_by_activity/{item_id}", response_model=models.RecommendResponse)
 def recommend_by_activity(item_id: int):
-    return models.RecommendResponse(
-        items=[
-            models.RecommendedItem(
-                id=item[0],
-                score=item[1],
-                name=item[2],
-            )
-            for item in service.recommend_by_activity(item_id)
-        ]
-    )
+    return []
 
 
 ########################################################################################################################

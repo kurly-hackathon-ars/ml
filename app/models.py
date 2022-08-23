@@ -57,9 +57,12 @@ class RecommendByActivityRequest(pydantic.BaseModel):
 
 
 class RecommendedItem(pydantic.BaseModel):
-    id: int
+    no: int
+    img_url: str = ""
     name: str
-    score: float
+    origin_price: int = -1
+    sale_price: int = -1
+    category: str
 
 
 class RecommendResponse(pydantic.BaseModel):
@@ -70,3 +73,4 @@ class MilvusSearchResult(pydantic.BaseModel):
     item_id: int
     item_name: str
     distance: float
+    item: Item

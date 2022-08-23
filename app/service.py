@@ -31,11 +31,15 @@ def recommend_by_vector(query: str) -> List[models.MilvusSearchResult]:
     for hits in search_results:
         for hit in hits:
             item = deps.get_item_by_id(hit.id)
+            if not item:
+                continue
+
             results.append(
                 models.MilvusSearchResult(
                     distance=hit.distance,
                     item_id=hit.id,
                     item_name=item.name if item else "<unknown>",
+                    item=item,
                 )
             )
     return results
