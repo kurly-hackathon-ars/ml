@@ -49,3 +49,6 @@ ml_mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
     password=ML_MYSQL_PASSWORD,
     database=ML_MYSQL_DATABASE,
 )
+
+KAFKA_HOST = os.environ.get("KAFKA_HOST", "localhost")
+KAFKA_PORT = os.environ.get("KAFKA_PORT", "9092")
