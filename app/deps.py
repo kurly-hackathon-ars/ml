@@ -51,6 +51,31 @@ def get_items() -> List[models.Item]:
     return items
 
 
+def get_items_by_ids(ids: List[int]) -> List[models.Item]:
+    conn = config.ml_mysql_pool.get_connection()
+    cursor = conn.cursor()
+    items = {}
+    cursor.execute(
+        f"select * from items where item_id in ({', '.join([str(id) for id in ids])})"
+    )
+    for each in cursor:
+        item = models.Item(
+            id=each[2],
+            index=each[0],
+            name=each[1],
+            category=each[3],
+            img_url=each[4],
+            origin_price=each[5],
+            sale_price=each[6],
+        )
+        items[item.id] = item
+
+    cursor.close()
+    conn.close()
+
+    return [items[id] for id in ids]
+
+
 def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
     return [
         cast(models.ItemFilterDictionary, item)

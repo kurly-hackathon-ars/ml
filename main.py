@@ -49,9 +49,15 @@ def recommend_by_keyword(keyword: str):
 
 
 # 사용자의 행동 데이터 (좋아요, 장바구니 담기, 최근 상품 등)들을 통해 생성, 가공된 상품 데이터를 통해 실시간 추천
-@app.get("/recommend_by_activity/{item_id}", response_model=models.RecommendResponse)
+@app.get("/recommend_by_activity/{item_id}")
 def recommend_by_activity(item_id: int):
-    return []
+    return {
+        "search": [deps.get_items_by_ids([5000069, 5000070])],
+        "view": [deps.get_items_by_ids([5000069, 5000070])],
+        "buy": [deps.get_items_by_ids([5000069, 5000070])],
+        "like": [deps.get_items_by_ids([5000069, 5000070])],
+        "cart": [deps.get_items_by_ids([5000069, 5000070])],
+    }
 
 
 ########################################################################################################################
@@ -69,11 +75,7 @@ def get_item_by_id(item_id: int):
 
 @app.get("/items/batch/{item_ids}", tags=["Management"])
 def get_items_by_ids(item_ids: str):
-    items = []
-    for item_id in item_ids.split(","):
-        item = deps.get_item_by_id(int(item_id))
-        items.append(item)
-    return items
+    return deps.get_items_by_ids([int(id) for id in item_ids.split(",")])
 
 
 @app.get("/activities", tags=["Management"])
