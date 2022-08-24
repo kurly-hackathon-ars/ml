@@ -2,7 +2,6 @@ from threading import Lock
 from typing import List, Optional
 
 import config
-import pymilvus
 from pymilvus import (Collection, CollectionSchema, DataType, FieldSchema,
                       SearchResult)
 

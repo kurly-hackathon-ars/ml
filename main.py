@@ -93,7 +93,14 @@ def get_all_acitivies():
 
 @app.put("/items", tags=["Management"])
 def put_item(request: models.PutItemRequest):
-    service.insert_item(request.id, request.name, request.category)
+    service.insert_item(
+        request.id,
+        request.name,
+        request.category,
+        request.img_url,
+        request.origin_price or 0,
+        request.sale_price or 0,
+    )
     return Response(status_code=200)
 
 
@@ -120,14 +127,12 @@ def post_activity(request: models.PostActivityRequest):
 @app.delete("/items/{item_id}", tags=["Management"])
 def delete_item(item_id: int):
     deps.delete_item(item_id)
-    service._train_model()
     return Response(status_code=204)
 
 
 @app.post("/items/setup_samples", tags=["Management"])
 def setup_sample_items_for_testing():
     deps.setup_sample_items_from_csv()
-    service._train_model()
     return Response(status_code=200)
 
 

@@ -235,21 +235,17 @@ def delete_item(item_id: int):
 @_concurrent_lock
 def setup_sample_items_from_csv(
     items_fp: str = "./data/items.csv",
-    ratings_fp: str = "./data/ratings.csv",
 ):
-    if "items" in _db:
-        _db.pop("items")
-
-    if "activities" in _db:
-        _db.pop("activities")
-
     items = pd.read_csv(items_fp)
     for _, item in items.iterrows():
-        upsert_item(item["itemId"], item["title"], item["category"])
-
-    ratings = pd.read_csv(ratings_fp)
-    for _, rating in ratings:
-        add_activity(rating["userId"], rating["itemId"], activity_type=rating["rating"])
+        upsert_item(
+            item["itemId"],
+            item["title"],
+            item["category"],
+            item["img_url"],
+            item["origin_price"],
+            item["sale_price"],
+        )
 
 
 @_concurrent_lock
