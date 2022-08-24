@@ -42,7 +42,7 @@ mysql_connection = mysql.connector.connect(
 
 ml_mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name="default_pool",
-    pool_size=25,
+    pool_size=100,
     pool_reset_session=True,
     user=ML_MYSQL_USERNAME,
     host=ML_MYSQL_HOST,
