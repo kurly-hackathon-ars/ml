@@ -78,6 +78,8 @@ def recommend_by_activity():
         )[:10]:
             type_to_items_ret[_TYPE_TO_RET_MAP[k]].append(deps.get_item_by_id(k2))
 
+    return type_to_items_ret
+
 
 @app.get("/items/batch/{item_ids}", tags=["Management"])
 def get_items_by_ids(item_ids: str):

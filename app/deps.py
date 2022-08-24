@@ -198,7 +198,7 @@ def upsert_activity(item_id: int, activity_type: str, offset: int):
             VALUES ('{item_id}', '{offset}', '{activity_type}')
     """
     )
-    cursor.fetchall()
+    conn.commit()
     cursor.close()
     conn.close()
 
