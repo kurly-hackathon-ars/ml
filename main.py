@@ -1,7 +1,7 @@
 import csv
 import logging
 from collections import Counter, defaultdict
-from typing import List
+from typing import List, Optional
 
 import typer
 from fastapi import FastAPI
@@ -59,7 +59,8 @@ _TYPE_TO_RET_MAP = {
 
 # 사용자의 행동 데이터 (좋아요, 장바구니 담기, 최근 상품 등)들을 통해 생성, 가공된 상품 데이터를 통해 실시간 추천
 @app.get("/recommend_by_activity")
-def recommend_by_activity():
+def recommend_by_activity(type: Optional[str] = None):
+    """types: buy, cart, like, view, search"""
     # PURCHASE, CART, FAVORITE, CLICK, SEARCH
     type_to_items = defaultdict(list)
     activities = deps.get_activities2()
@@ -77,6 +78,9 @@ def recommend_by_activity():
             sorted(list(Counter(v).items()), key=lambda x: x[1], reverse=True)
         )[:10]:
             type_to_items_ret[_TYPE_TO_RET_MAP[k]].append(deps.get_item_by_id(k2))
+
+    if type:
+        return type_to_items_ret[type]
 
     return type_to_items_ret
 
