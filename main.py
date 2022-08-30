@@ -180,7 +180,7 @@ def insert_milvus_entities(fp: str = "./data/items.csv"):
 
 @typer_app.command()
 def create_ml_mysql_tables():
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS items")
     cursor.execute(

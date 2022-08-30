@@ -3,7 +3,6 @@ import os
 
 import mysql.connector
 import pymilvus
-
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("parso").setLevel(logging.INFO)
 
@@ -40,15 +39,14 @@ mysql_connection = mysql.connector.connect(
     database=MYSQL_DATABASE,
 )
 
-ml_mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
-    pool_name="default_pool",
-    pool_size=25,
-    pool_reset_session=True,
-    user=ML_MYSQL_USERNAME,
-    host=ML_MYSQL_HOST,
-    password=ML_MYSQL_PASSWORD,
-    database=ML_MYSQL_DATABASE,
-)
+
+def get_ml_connection():
+    return mysql.connector.connect(
+        user=ML_MYSQL_USERNAME,
+        host=ML_MYSQL_HOST,
+        password=ML_MYSQL_PASSWORD,
+        database=ML_MYSQL_DATABASE,
+    )
 
 # KAFKA_HOST = os.environ.get("KAFKA_HOST", "localhost")
 KAFKA_PORT = os.environ.get("KAFKA_PORT", "9092")

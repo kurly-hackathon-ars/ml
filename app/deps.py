@@ -30,7 +30,7 @@ def _concurrent_lock(fn: Callable):
 
 
 def get_items() -> List[models.Item]:
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     items = []
     cursor.execute("select * from items")
@@ -52,7 +52,7 @@ def get_items() -> List[models.Item]:
 
 
 def get_items_by_ids(ids: List[int]) -> List[models.Item]:
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     items = {}
     cursor.execute(
@@ -91,7 +91,7 @@ def get_item_filter_dictionaries() -> List[models.ItemFilterDictionary]:
 
 
 def get_item_by_id(item_id: int) -> Optional[models.Item]:
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     query = f"""
         SELECT * FROM items WHERE item_id={item_id}
@@ -117,7 +117,7 @@ def get_item_by_id(item_id: int) -> Optional[models.Item]:
 
 
 def get_item_by_index(idx: int) -> Optional[models.Item]:
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     query = f"""
         SELECT * FROM items WHERE id={idx}
@@ -154,7 +154,7 @@ def upsert_item(
     origin_price: Optional[int],
     sale_price: Optional[int],
 ) -> models.Item:
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     name = name.replace("'", "")
     category = category.replace("'", "")
@@ -190,7 +190,7 @@ def add_activity(
 
 
 def upsert_activity(item_id: int, activity_type: str, offset: int):
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     cursor.execute(
         f"""
@@ -204,7 +204,7 @@ def upsert_activity(item_id: int, activity_type: str, offset: int):
 
 
 def get_activities2():
-    conn = config.ml_mysql_pool.get_connection()
+    conn = config.get_ml_connection()
     cursor = conn.cursor()
     cursor.execute(
         f"""
